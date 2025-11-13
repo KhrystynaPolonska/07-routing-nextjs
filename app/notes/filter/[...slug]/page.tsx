@@ -1,39 +1,26 @@
-import {
-  HydrationBoundary,
-  QueryClient,
-  dehydrate,
-} from '@tanstack/react-query';
+import { dehydrate, HydrationBoundary, QueryClient } from '@tanstack/react-query';
+import Notes from './Notes.client';
+import { getNotes } from '@/lib/api';
 
-import { fetchNotes } from '@/lib/api';
-import type { NoteTag } from '@/types/note';
-import NotesClient from './Notes.client';
+type Props = {
+  params: Promise<{ slug: string[] }>;
+};
 
-const PER_PAGE = 12;
-
-interface NotesByTagPageProps {
-  params: Promise<{ slug?: string[] }>;
-}
-
-async function NotesByTagPage({ params }: NotesByTagPageProps) {
+const NoteDetails = async ({ params }: Props) => {
   const { slug } = await params;
-  const maybeTag = slug?.[0];
-
-  const tag =
-    !maybeTag || maybeTag === 'all'
-      ? undefined
-      : (decodeURIComponent(maybeTag) as NoteTag);
-
+  const tag = slug[0];
   const queryClient = new QueryClient();
+
   await queryClient.prefetchQuery({
-    queryKey: ['notes', 1, PER_PAGE, '', tag ?? ''],
-    queryFn: () => fetchNotes({ page: 1, perPage: PER_PAGE, search: '', tag }),
+    queryKey: ['notes', tag],
+    queryFn: () => getNotes(1, 12, undefined, tag),
   });
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
-      <NotesClient initialSearch="" tag={tag} />
+      <Notes tag={tag} />
     </HydrationBoundary>
   );
-}
+};
 
-export default NotesByTagPage;
+export default NoteDetails;

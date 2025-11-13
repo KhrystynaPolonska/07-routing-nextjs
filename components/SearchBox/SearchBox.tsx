@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { useState } from "react";
 import css from "./SearchBox.module.css";

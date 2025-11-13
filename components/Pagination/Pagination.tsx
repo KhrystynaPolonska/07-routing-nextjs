@@ -1,28 +1,36 @@
-"use client";
-
-import dynamic from "next/dynamic";
 import css from "./Pagination.module.css";
-
-const ReactPaginate = dynamic(() => import("react-paginate"), { ssr: false });
+import ReactPaginate from "react-paginate";
 
 interface PaginationProps {
   pageCount: number;
-  onPageChange: (selectedItem: { selected: number }) => void;
+  currentPage: number;
+  onPageChange: (page: number) => void;
 }
 
-export default function Pagination({ pageCount, onPageChange }: PaginationProps) {
+export default function Pagination({
+  pageCount,
+  currentPage,
+  onPageChange,
+}: PaginationProps) {
+  const handlePageClick = ({ selected }: { selected: number }) => {
+    const next = selected + 1;
+    if (next !== currentPage) onPageChange(next);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   return (
-    <div className={css.paginationWrapper}>
+    <>
       <ReactPaginate
-        breakLabel="..."
-        nextLabel=">"
-        previousLabel="<"
-        onPageChange={onPageChange}
-        pageRangeDisplayed={3}
         pageCount={pageCount}
+        pageRangeDisplayed={5}
+        marginPagesDisplayed={1}
+        onPageChange={handlePageClick}
+        forcePage={currentPage - 1}
         containerClassName={css.pagination}
         activeClassName={css.active}
+        nextLabel="→"
+        previousLabel="←"
       />
-    </div>
+    </>
   );
 }

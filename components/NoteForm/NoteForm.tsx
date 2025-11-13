@@ -1,117 +1,138 @@
 'use client';
 
-import { Formik, Form, Field, ErrorMessage } from "formik";
-import * as Yup from "yup";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { createNote } from "@/lib/api";
-import type { NoteCreate } from "@/types/note";
-import css from "./NoteForm.module.css";
+import { Formik, Form, Field, ErrorMessage } from 'formik';
+import type { FormikHelpers } from 'formik';
+import type { NoteTag } from '@/types/note';
+import * as Yup from 'yup';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useId } from 'react';
+import { createNote } from '@/lib/api';
+import css from './NoteForm.module.css';
+
+const TAGS = ['Todo', 'Work', 'Personal', 'Meeting', 'Shopping'] as const;
 
 interface NoteFormProps {
-  onSubmit: () => void;
+  onClose: () => void;
+  onSuccess?: () => void;
 }
 
-const tagOptions = ["Todo", "Work", "Personal", "Meeting", "Shopping"];
+interface NoteFormValues {
+  title: string;
+  content: string;
+  tag: NoteTag;
+}
 
-export default function NoteForm({ onSubmit }: NoteFormProps) {
+const initialValues: NoteFormValues = {
+  title: '',
+  content: '',
+  tag: 'Todo',
+};
+
+const validationSchema = Yup.object({
+  title: Yup.string()
+    .min(3, 'Title too short')
+    .max(50, 'Title is too long')
+    .required('Title is required'),
+  content: Yup.string().max(500, 'Content is too long'),
+  tag: Yup.mixed<NoteTag>()
+    .oneOf(TAGS as readonly NoteTag[])
+    .required('Tag is required'),
+});
+
+const NoteForm = ({ onClose, onSuccess }: NoteFormProps) => {
   const queryClient = useQueryClient();
+  const fieldId = useId();
 
-  const { mutate, isPending } = useMutation({
-    mutationFn: (note: NoteCreate) => createNote(note),
+  const { mutateAsync, isPending } = useMutation({
+    mutationFn: createNote,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["notes"] });
-      onSubmit();
-    },
-    onError: (error) => {
-      console.error("Error creating note:", error);
-      alert("Failed to create note. Please try again.");
+      queryClient.invalidateQueries({ queryKey: ['notes'] });
+      onSuccess?.();
+      onClose();
     },
   });
 
-  const validationSchema = Yup.object({
-    title: Yup.string()
-      .min(3, "Title must be at least 3 characters")
-      .max(50, "Title must be at most 50 characters")
-      .required("Title is required"),
-
-    content: Yup.string()
-      .max(500, "Content must be at most 500 characters"),
-
-    tag: Yup.string()
-      .oneOf(tagOptions, "Invalid tag")
-      .required("Tag is required"),
-  });
+  const handleSubmit = async (
+    values: NoteFormValues,
+    actions: FormikHelpers<NoteFormValues>,
+  ) => {
+    await mutateAsync(values);
+    actions.resetForm();
+  };
 
   return (
     <Formik
-      initialValues={{ title: "", content: "", tag: "Todo" }}
+      initialValues={initialValues}
       validationSchema={validationSchema}
-      onSubmit={(values, { resetForm }) => {
-        const payload: NoteCreate = {
-          title: values.title,
-          content: values.content,
-          tag: values.tag,
-        };
-        mutate(payload, {
-          onSuccess: () => resetForm(),
-        });
-      }}
+      onSubmit={handleSubmit}
+      validateOnMount
     >
-      {() => (
+      {({ isValid, dirty }) => (
         <Form className={css.form}>
-          <div className={css.fieldWrapper}>
+          <div className={css.formGroup}>
+            <label htmlFor={`${fieldId}-title`}>Title</label>
             <Field
+              id={`${fieldId}-title`}
               name="title"
               type="text"
-              placeholder="Title"
               className={css.input}
-              disabled={isPending}
             />
-            <ErrorMessage name="title" component="div" className={css.error} />
+            <ErrorMessage name="title" component="span" className={css.error} />
           </div>
 
-          <div className={css.fieldWrapper}>
+          <div className={css.formGroup}>
+            <label htmlFor={`${fieldId}-content`}>Content</label>
             <Field
               as="textarea"
+              id={`${fieldId}-content`}
               name="content"
-              placeholder="Content (optional)"
+              rows={8}
               className={css.textarea}
-              disabled={isPending}
             />
-            <ErrorMessage name="content" component="div" className={css.error} />
+            <ErrorMessage
+              name="content"
+              component="span"
+              className={css.error}
+            />
           </div>
 
-          <div className={css.fieldWrapper}>
-            <Field as="select" name="tag" className={css.select} disabled={isPending}>
-              {tagOptions.map((tag) => (
-                <option key={tag} value={tag}>
-                  {tag}
+          <div className={css.formGroup}>
+            <label htmlFor={`${fieldId}-tag`}>Tag</label>
+            <Field
+              as="select"
+              id={`${fieldId}-tag`}
+              name="tag"
+              className={css.select}
+            >
+              {TAGS.map((t) => (
+                <option key={t} value={t}>
+                  {t}
                 </option>
               ))}
             </Field>
-            <ErrorMessage name="tag" component="div" className={css.error} />
+            <ErrorMessage name="tag" component="span" className={css.error} />
           </div>
 
-          <div className={css.buttons}>
+          <div className={css.actions}>
             <button
               type="button"
               className={css.cancelButton}
-              onClick={onSubmit}
-              disabled={isPending}
+              onClick={onClose}
             >
               Cancel
             </button>
-
             <button
               type="submit"
               className={css.submitButton}
-              disabled={isPending}
+              disabled={isPending || !isValid || !dirty}
             >
-              {isPending ? "Creating..." : "Create Note"}
+              {isPending ? 'Creating...' : 'Create note'}
             </button>
           </div>
         </Form>
       )}
     </Formik>
   );
-}
+};
+
+export default NoteForm;
