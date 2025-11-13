@@ -73,7 +73,6 @@ export default function Notes({ tag }: NotesProps) {
 
   return (
     <div>
-      <h1> {tag ? `Notes: '${tag}'` : 'All notes'} </h1>
       <button onClick={() => setIsModalOpen(true)}>+ New Note</button>
       <SearchBox value={search} onSearchChange={handleSearchChange} />
 
