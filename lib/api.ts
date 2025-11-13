@@ -24,13 +24,15 @@ export interface FetchNotesResponse {
 }
 
 export const fetchNotes = async ({
-  search = '',
+  search = 'tag',
   page = 1,
   perPage = PER_PAGE,
+  tag,
 }: {
   search?: string;
   page?: number;
   perPage?: number;
+  tag?: string;
 } = {}): Promise<FetchNotesResponse> => {
   await new Promise((resolve) => setTimeout(resolve, 2000));
 

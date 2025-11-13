@@ -31,7 +31,7 @@ async function NotesByTagPage({ params }: NotesByTagPageProps) {
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
-      <NotesClient tag={tag} />
+      <NotesClient initialSearch="" tag={tag} />
     </HydrationBoundary>
   );
 }

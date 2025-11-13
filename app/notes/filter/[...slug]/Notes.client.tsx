@@ -15,26 +15,23 @@ import css from './Notes.client.module.css';
 interface Props {
   initialSearch?: string;
   initialPage?: number;
-  category?: string;
+  tag?: string; // ✅ заменяем category → tag
 }
 
 const NotesClient = ({
   initialSearch = '',
   initialPage = 1,
-  category = '',
+  tag = '', // ✅ новый проп
 }: Props) => {
   const [search, setSearch] = useState(initialSearch);
   const [debouncedSearch, setDebouncedSearch] = useState(initialSearch);
   const [page, setPage] = useState(initialPage);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [currentCategory, setCurrentCategory] = useState(category);
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setCurrentCategory(category);
     setPage(1);
-  }, [category]);
+  }, [tag]);
 
   const debounced = useDebouncedCallback((value: string) => {
     setDebouncedSearch(value);
@@ -48,14 +45,14 @@ const NotesClient = ({
   };
 
   const { data, isLoading, isError } = useQuery<FetchNotesResponse, Error>({
-    queryKey: ['notes', debouncedSearch, page, currentCategory],
+    queryKey: ['notes', debouncedSearch, page, tag],
     queryFn: () =>
       fetchNotes({
         search: debouncedSearch,
         page,
-        tag: currentCategory,
+        tag: tag || undefined,
       }),
-    placeholderData: (previousData) => previousData,
+    placeholderData: previousData => previousData,
   });
 
   const handleCreateSuccess = () => {
@@ -81,11 +78,11 @@ const NotesClient = ({
       </div>
 
       {data.totalPages > 1 && (
-  <Pagination
-    pageCount={Math.ceil(data.totalPages)}
-    onPageChange={({ selected }) => setPage(selected + 1)}
-  />
-)}
+        <Pagination
+          pageCount={Math.ceil(data.totalPages)}
+          onPageChange={({ selected }) => setPage(selected + 1)}
+        />
+      )}
 
       {data.notes.length ? (
         <NoteList notes={data.notes} />
@@ -96,8 +93,7 @@ const NotesClient = ({
       {isModalOpen && (
         <Modal onClose={() => setIsModalOpen(false)}>
           <NoteForm
-            onClose={() => setIsModalOpen(false)}
-            onSuccess={handleCreateSuccess}
+          onSubmit={handleCreateSuccess}
           />
         </Modal>
       )}
