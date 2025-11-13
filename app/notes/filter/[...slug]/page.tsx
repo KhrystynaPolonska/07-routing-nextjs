@@ -6,7 +6,7 @@ import {
 
 import { fetchNotes } from '@/lib/api';
 import type { NoteTag } from '@/types/note';
-import NotesClient from './[...slug]/Notes.client';
+import NotesClient from './Notes.client';
 
 const PER_PAGE = 12;
 
