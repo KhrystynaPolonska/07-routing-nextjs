@@ -39,7 +39,7 @@ export const getNotes = async (
   return response.data;
 };
 
-export const fetchNotes = async (id: string): Promise<Note> => {
+export const fetchNoteById = async (id: string): Promise<Note> => {
   const response = await axios.get<Note>(`/notes/${id}`, {
     headers: {
       accept: 'application/json',

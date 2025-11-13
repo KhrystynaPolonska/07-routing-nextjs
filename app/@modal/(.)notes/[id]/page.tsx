@@ -1,5 +1,5 @@
 
-import { fetchNotes } from '@/lib/api';
+import { fetchNoteById } from '@/lib/api';
 import {
   dehydrate,
   HydrationBoundary,
@@ -18,7 +18,7 @@ const ModalNotePage = async ({ params }: Props) => {
   if (id) {
     await queryClient.prefetchQuery({
       queryKey: ['note', id],
-      queryFn: () => fetchNotes(id),
+      queryFn: () => fetchNoteById(id),
     });
   }
 
