@@ -1,5 +1,7 @@
 import { Note, NoteTag } from '@/types/note';
 import axios from 'axios';
+// import { fetchNoteById } from '@/lib/api';
+
 
 interface NoteListResponse {
   notes: Note[];
