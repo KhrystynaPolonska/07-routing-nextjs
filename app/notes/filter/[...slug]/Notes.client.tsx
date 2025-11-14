@@ -7,10 +7,11 @@ import NoteList from '@/components/NoteList/NoteList';
 import Pagination from '@/components/Pagination/Pagination';
 import SearchBox from '@/components/SearchBox/SearchBox';
 import { createNote, getNotes } from '@/lib/api';
-import { Note } from '@/types/note';
+import type { Note } from '@/types/note';
 import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
+
 
 type NotesProps = {
   tag?: string;
@@ -73,7 +74,7 @@ export default function Notes({ tag }: NotesProps) {
 
   return (
     <div>
-      <button onClick={() => setIsModalOpen(true)}>+ New Note</button>
+      <button onClick={() => setIsModalOpen(true)}>Create note +</button>
       <SearchBox value={search} onSearchChange={handleSearchChange} />
 
       {notes.length > 0 && <NoteList notes={notes} />}
