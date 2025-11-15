@@ -8,7 +8,7 @@ import css from './NoteDetails.module.css';
 const NoteDetailsClient = ({ noteId }: { noteId: string }) => {
   const isValidId = !!noteId;
 
-  const {
+const {
     data: note,
     isLoading,
     isError,
