@@ -20,13 +20,15 @@ const API_KEY = process.env.NEXT_PUBLIC_NOTEHUB_TOKEN;
 export const getNotes = async (
   page: number = 1,
   perPage: number = 12,
-  search?: string
+  search?: string,
+  tag?: string
 ): Promise<NoteResponse> => {
   const response = await axios.get<NoteResponse>(`/notes`, {
     params: {
       page,
       perPage,
       ...(search ? { search } : {}),
+      ...(tag && tag !== 'all' ? { tag } : {}),
     },
     headers: {
       accept: 'application/json',
@@ -36,6 +38,7 @@ export const getNotes = async (
 
   return response.data;
 };
+
 
 export const fetchNoteById = async (id: string): Promise<Note> => {
   const response = await axios.get<Note>(`/notes/${id}`, {
