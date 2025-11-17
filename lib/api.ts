@@ -3,7 +3,7 @@ import axios from 'axios';
 
 
 
-interface NoteListResponse {
+interface NoteResponse {
   notes: Note[];
   totalPages: number;
 }
@@ -24,8 +24,8 @@ export const getNotes = async (
   perPage: number = 12,
   search?: string,
   tag?: string
-): Promise<NoteListResponse> => {
-  const response = await axios.get<NoteListResponse>(`/notes`, {
+): Promise<NoteResponse> => {
+  const response = await axios.get<NoteResponse>(`/notes`, {
     params: {
       page,
       perPage,
