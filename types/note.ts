@@ -9,8 +9,8 @@ export interface Note {
   updatedAt: string;
 }
 
-export interface NoteCreate {
-  title: string;
-  content: string;
-  tag: NoteTag;
-}
+// export interface NoteCreate {
+//   title: string;
+//   content: string;
+//   tag: NoteTag;
+// }
