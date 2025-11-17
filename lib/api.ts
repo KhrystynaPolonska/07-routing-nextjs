@@ -16,7 +16,7 @@ export type Tag = {
   updatedAt: string;
 };
 
-axios.defaults.baseURL = `https://notehub-public.goit.study/api`;
+axios.defaults.baseURL = "https://notehub-public.goit.study/api";
 const API_KEY = process.env.NEXT_PUBLIC_NOTEHUB_TOKEN;
 
 export const getNotes = async (
@@ -34,7 +34,7 @@ export const getNotes = async (
     },
     headers: {
       accept: 'application/json',
-      Authorization: `Bearer ${API_KEY}`,
+      Authorization: "Bearer ${API_KEY}",
     },
   });
 
