@@ -73,8 +73,9 @@ export default function Notes({ tag }: NotesProps) {
 
   return (
     <div>
-      <button onClick={() => setIsModalOpen(true)}>+ New Note</button>
-      <SearchBox value={search} onSearchChange={handleSearchChange} />
+      <button onClick={() => setIsModalOpen(true)}>add New Note</button>
+
+      <SearchBox value={search} onSearch={handleSearchChange} />
 
       {notes.length > 0 && <NoteList notes={notes} />}
 
