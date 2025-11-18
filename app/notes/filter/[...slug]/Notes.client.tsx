@@ -1,7 +1,7 @@
 'use client';
 
 import Loading from '@/app/loading';
-import Modal from '@/components/Modal/Modal';
+// import Modal from '@/components/Modal/Modal';
 import NoteForm from '@/components/NoteForm/NoteForm';
 import NoteList from '@/components/NoteList/NoteList';
 import Pagination from '@/components/Pagination/Pagination';
@@ -52,21 +52,13 @@ export default function Notes({ tag }: NotesProps) {
     setCurrentPage(1);
   };
 
-  const handleCreateNote = async (note: Partial<Note>) => {
-    if (!note.title || !note.content || !note.tag) {
-      toast.error('Error');
-      return;
-    }
+ const handleCreateNote = async (note: Partial<Note>) => {
+  await createNote({ title: note.title!, content: note.content!, tag: note.tag! });
+  toast.success('Note created!');
+  queryClient.invalidateQueries({ queryKey: ['notes'], exact: false });
+  setIsModalOpen(false);
+};
 
-    try {
-      await createNote({ title: note.title, content: note.content, tag: note.tag });
-      toast.success('Note created!');
-      queryClient.invalidateQueries({ queryKey: ['notes'], exact: false });
-      setIsModalOpen(false);
-    } catch (error) {
-      toast.error('Failed to create note');
-    }
-  };
 
   if (isLoading) return <Loading />;
   if (isError) return <p>Error to loading notes...</p>;
@@ -87,11 +79,17 @@ export default function Notes({ tag }: NotesProps) {
         />
       )}
 
-      {isModalOpen && (
-        <Modal onClose={() => setIsModalOpen(false)}>
-          <NoteForm onSubmit={handleCreateNote} />
-        </Modal>
-      )}
+      <NoteForm
+  onSubmit={async (values) => {
+    // NoteFormValues has full types; convert if needed
+    await handleCreateNote(values);
+  }}
+  onClose={() => setIsModalOpen(false)}
+  onSuccess={() => {
+    /* optional extra actions after success */
+  }}
+/>
+
     </div>
   );
 }

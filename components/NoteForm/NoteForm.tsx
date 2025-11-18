@@ -11,12 +11,17 @@ import css from './NoteForm.module.css';
 
 const TAGS = ['Todo', 'Work', 'Personal', 'Meeting', 'Shopping'] as const;
 
-interface NoteFormProps {
+export interface NoteFormProps {
   onClose: () => void;
   onSuccess?: () => void;
+  /**
+   * Optional: parent can provide its own submit handler.
+   * If provided, NoteForm will call onSubmit(values) instead of using internal mutation.
+   */
+  onSubmit?: (values: NoteFormValues) => Promise<void>;
 }
 
-interface NoteFormValues {
+export interface NoteFormValues {
   title: string;
   content: string;
   tag: NoteTag;
@@ -39,14 +44,17 @@ const validationSchema = Yup.object({
     .required('Tag is required'),
 });
 
-const NoteForm = ({ onClose, onSuccess }: NoteFormProps) => {
+const NoteForm = ({ onClose, onSuccess, onSubmit }: NoteFormProps) => {
   const queryClient = useQueryClient();
   const fieldId = useId();
 
+  // internal mutation (used if parent didn't provide onSubmit)
   const { mutateAsync, isPending } = useMutation({
     mutationFn: createNote,
     onSuccess: () => {
+      // invalidate list so it will refresh
       queryClient.invalidateQueries({ queryKey: ['notes'] });
+      // call optional callbacks
       onSuccess?.();
       onClose();
     },
@@ -56,8 +64,27 @@ const NoteForm = ({ onClose, onSuccess }: NoteFormProps) => {
     values: NoteFormValues,
     actions: FormikHelpers<NoteFormValues>,
   ) => {
-    await mutateAsync(values);
-    actions.resetForm();
+    try {
+      if (onSubmit) {
+        // Parent handles creation (e.g. caller will do createNote, toast, invalidation)
+        await onSubmit(values);
+        // still reset form and call callbacks
+        actions.resetForm();
+        onSuccess?.();
+        onClose();
+      } else {
+        // default behavior: use internal mutation
+        await mutateAsync(values);
+        actions.resetForm();
+        // mutateAsync -> onSuccess callback (above) will call onClose/onSuccess/invalidate
+      }
+    } catch (err) {
+      // handle error as needed (optional: show toast /NoteForm)
+      // For now just rethrow so upper-level mutation or caller can catch
+      // or you can console.error(err)
+      console.error('NoteForm submit error', err);
+      // keep form state, allow user to retry
+    }
   };
 
   return (
