@@ -1,7 +1,7 @@
 'use client';
 
 import Loading from '@/app/loading';
-// import Modal from '@/components/Modal/Modal';
+import Modal from '@/components/Modal/Modal';
 import NoteForm from '@/components/NoteForm/NoteForm';
 import NoteList from '@/components/NoteList/NoteList';
 import Pagination from '@/components/Pagination/Pagination';
@@ -52,20 +52,24 @@ export default function Notes({ tag }: NotesProps) {
     setCurrentPage(1);
   };
 
- const handleCreateNote = async (note: Partial<Note>) => {
-  await createNote({ title: note.title!, content: note.content!, tag: note.tag! });
-  toast.success('Note created!');
-  queryClient.invalidateQueries({ queryKey: ['notes'], exact: false });
-  setIsModalOpen(false);
-};
+  const handleCreateNote = async (note: Partial<Note>) => {
+    await createNote({
+      title: note.title!,
+      content: note.content!,
+      tag: note.tag!,
+    });
 
+    toast.success('Note created!');
+    queryClient.invalidateQueries({ queryKey: ['notes'], exact: false });
+    setIsModalOpen(false);
+  };
 
   if (isLoading) return <Loading />;
-  if (isError) return <p>Error to loading notes...</p>;
+  if (isError) return <p>Error loading notes...</p>;
 
   return (
     <div>
-      <button onClick={() => setIsModalOpen(true)}>add New Note</button>
+      <button onClick={() => setIsModalOpen(true)}>Add New Note</button>
 
       <SearchBox value={search} onSearch={handleSearchChange} />
 
@@ -79,17 +83,18 @@ export default function Notes({ tag }: NotesProps) {
         />
       )}
 
-      <NoteForm
-  onSubmit={async (values) => {
-    // NoteFormValues has full types; convert if needed
-    await handleCreateNote(values);
-  }}
-  onClose={() => setIsModalOpen(false)}
-  onSuccess={() => {
-    /* optional extra actions after success */
-  }}
-/>
-
+      {/* ---- MODAL WITH FORM (appears only when open) ---- */}
+      {isModalOpen && (
+        <Modal onClose={() => setIsModalOpen(false)}>
+          <NoteForm
+            onSubmit={async (values) => {
+              await handleCreateNote(values);
+            }}
+            onClose={() => setIsModalOpen(false)}
+            onSuccess={() => {}}
+          />
+        </Modal>
+      )}
     </div>
   );
 }

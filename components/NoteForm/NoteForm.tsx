@@ -48,13 +48,11 @@ const NoteForm = ({ onClose, onSuccess, onSubmit }: NoteFormProps) => {
   const queryClient = useQueryClient();
   const fieldId = useId();
 
-  // internal mutation (used if parent didn't provide onSubmit)
+  // internal fallback mutation
   const { mutateAsync, isPending } = useMutation({
     mutationFn: createNote,
     onSuccess: () => {
-      // invalidate list so it will refresh
       queryClient.invalidateQueries({ queryKey: ['notes'] });
-      // call optional callbacks
       onSuccess?.();
       onClose();
     },
@@ -65,25 +63,19 @@ const NoteForm = ({ onClose, onSuccess, onSubmit }: NoteFormProps) => {
     actions: FormikHelpers<NoteFormValues>,
   ) => {
     try {
+      // If parent supplies submission logic → use it
       if (onSubmit) {
-        // Parent handles creation (e.g. caller will do createNote, toast, invalidation)
         await onSubmit(values);
-        // still reset form and call callbacks
         actions.resetForm();
-        onSuccess?.();
-        onClose();
-      } else {
-        // default behavior: use internal mutation
-        await mutateAsync(values);
-        actions.resetForm();
-        // mutateAsync -> onSuccess callback (above) will call onClose/onSuccess/invalidate
+        return; // parent handles toast, modal close, invalidation, etc.
       }
+
+      // Default internal createNote
+      await mutateAsync(values);
+      actions.resetForm();
+
     } catch (err) {
-      // handle error as needed (optional: show toast /NoteForm)
-      // For now just rethrow so upper-level mutation or caller can catch
-      // or you can console.error(err)
       console.error('NoteForm submit error', err);
-      // keep form state, allow user to retry
     }
   };
 
@@ -116,11 +108,7 @@ const NoteForm = ({ onClose, onSuccess, onSubmit }: NoteFormProps) => {
               rows={8}
               className={css.textarea}
             />
-            <ErrorMessage
-              name="content"
-              component="span"
-              className={css.error}
-            />
+            <ErrorMessage name="content" component="span" className={css.error} />
           </div>
 
           <div className={css.formGroup}>
@@ -141,13 +129,10 @@ const NoteForm = ({ onClose, onSuccess, onSubmit }: NoteFormProps) => {
           </div>
 
           <div className={css.actions}>
-            <button
-              type="button"
-              className={css.cancelButton}
-              onClick={onClose}
-            >
+            <button type="button" className={css.cancelButton} onClick={onClose}>
               Cancel
             </button>
+
             <button
               type="submit"
               className={css.submitButton}
